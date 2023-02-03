@@ -1,6 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 
 int checkForPairs(const std::vector<int>& hand, const std::vector<int>& hand2) // pass two of the same to check one hand
 {
@@ -15,7 +20,7 @@ int checkForPairs(const std::vector<int>& hand, const std::vector<int>& hand2) /
             }
         }
     }
-    return -1;
+    return -1; // -1 means no pairs
 }
 
 void remove_zeroes(std::vector<int>& input)
@@ -56,21 +61,41 @@ void erasePairs(std::vector<int>& hand, std::vector<int>& hand2, std::string han
     remove_zeroes(hand2);
 }
 
-void print_hand(const std::vector<int>& input)
+void print_hand(const std::vector<int>& input, const std::string handtype)
 {
-    std::cout << "Your cards are: " << input[0];
-    for (int i = 1; i < input.size(); i++)
-    {
+    std::cout << std::endl;
+    std::cout << handtype << " cards are: " << input[0]; // handtype is used when
+    for (int i = 1; i < input.size(); i++) //               dev mode where you cn
+    { //                                                    see cptrs cards
         std::cout << ", " << input[i];
     }
     std::cout << std::endl;
+}
+
+void checkForWin(const std::vector<int>& human_hand, const std::vector<int>& computer_hand, const std::vector<int>& available_cards)
+{
+    if (human_hand.size() <= 0)
+        {
+            std::cout << "You win!" << std::endl;
+            exit(0);
+        }
+        else if (computer_hand.size() <= 0)
+        {
+            std::cout << "Computer wins!" << std::endl;
+            exit(0);
+        }
+        else if (available_cards.size() <= 0)
+        {
+            std::cout << "Tie!" << std::endl; // don't keep track of discarded
+            exit(0); //                          cards so out of cards is a tie
+        }
 }
 
 int main()
 {
     std::random_device random; // use distrib(random) to generate your number
     std::uniform_int_distribution<> distrib(0, 51);
-    std::vector<int> human_hand, computer_hand, available_cards; // expected_hand is what it thinks player has
+    std::vector<int> human_hand, computer_hand, available_cards, expected_hand; // expected_hand is what it thinks player has
     for (int i = 1; i < 14; i++)
     {
         for (int x = 0; x < 4; x++)
@@ -80,7 +105,7 @@ int main()
     }
     int chosencard; // to know which card to delete of available_cards
     std::vector<int>::iterator delete_at;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++) // change i < 5 to change cards per player
     {
         chosencard = distrib(random);
         chosencard = chosencard % int(available_cards.size()); // deals 1 card to human then one to computer
@@ -93,35 +118,25 @@ int main()
         computer_hand.push_back(available_cards[chosencard]);
         available_cards.erase(delete_at);
     }
-    print_hand(human_hand);
+    print_hand(human_hand, "Your"); // use posessive with print_hand
     erasePairs(human_hand, human_hand, "You");
     erasePairs(computer_hand, computer_hand, "Computer");
     (checkForPairs(human_hand, human_hand) == -1) ? std::cout << "" : std::cout << "failure :(\n"; //       checks each hand for pairs after the pair
     (checkForPairs(computer_hand, computer_hand) == -1) ? std::cout << "" : std::cout << "failure :(\n"; // removing process
     int askedcard;
     bool opponenthas = false;
+    int shouldaskfor;
     while (true)
     {
-        if (human_hand.size() == 0)
-        {
-            std::cout << "You win!" << std::endl;
-            return 0;
-        }
-        else if (computer_hand.size() == 0)
-        {
-            std::cout << "Computer wins!" << std::endl;
-            return 0;
-        }
-        else if (available_cards.size() == 0)
-        {
-            std::cout << "Tie!" << std::endl;
-            return 0;
-        }
-        erasePairs(human_hand, human_hand, "You");
-        erasePairs(computer_hand, computer_hand, "Computer");
-        print_hand(human_hand);
-        std::cout << "What do you ask the computer for?: ";
+        checkForWin(human_hand, computer_hand, available_cards);
+        print_hand(human_hand, "Your");
+        // print_hand(computer_hand, "Computer's");
+        std::cout << "\nWhat do you ask the computer for?: " << std::endl;
+        shouldaskfor = checkForPairs(human_hand, computer_hand);
+        // (shouldaskfor == -1) ? std::cout << "No cards in common.\n" : std::cout << "Ask for a " << human_hand[shouldaskfor] << std::endl;
         std::cin >> askedcard;
+        expected_hand.push_back(askedcard);
+        sleep(1);
         opponenthas = false;
         for (int i = 0; i < computer_hand.size(); i++)
         {
@@ -131,6 +146,17 @@ int main()
                 delete_at = computer_hand.begin() + i;
                 computer_hand.erase(delete_at);
                 opponenthas = true;
+                std::cout << "The computer had a " << askedcard << ".\n";
+                sleep(1);
+                erasePairs(human_hand, human_hand, "You"); // prevents delayed pairing
+                for (int i = 0; i < expected_hand.size(); i++)
+                {
+                    if (expected_hand[i] == askedcard) // happens if expected_hand is wrong
+                    {
+                        delete_at = expected_hand.begin() + i; // corrects the deviation
+                        expected_hand.erase(delete_at);
+                    }
+                }
             }
         }
         if (!opponenthas)
@@ -139,32 +165,59 @@ int main()
             chosencard = distrib(random);
             chosencard = chosencard % available_cards.size();
             human_hand.push_back(available_cards[chosencard]);
+            sleep(1);
+            std::cout << "You caught a " << available_cards[chosencard] << ".\n";
+            sleep(1);
+            erasePairs(human_hand, human_hand, "You");
             delete_at = available_cards.begin() + chosencard;
             available_cards.erase(delete_at);
         }
-        askedcard = distrib(random);
-        askedcard = askedcard % computer_hand.size();
-        askedcard = (askedcard == 0) ? 1 : askedcard;
-        std::cout << "Opponent asks for a " << askedcard << std::endl;
+        checkForWin(human_hand, computer_hand, available_cards);
+        askedcard = (checkForPairs(computer_hand, expected_hand) == -1) ? (distrib(random) % computer_hand.size()) : checkForPairs(computer_hand, expected_hand);
+        // if (no pairs) {set it to rand} else {set it to pairs}
+        // prevents computer asking for 0s issue
+        // askedcard debug std::cout << "askedcard is " << askedcard << "\n";
+        // intelligence check (checkForPairs(computer_hand, expected_hand) == -1) ? std::cout << "Guess\n" : std::cout << "smort\n";
+        askedcard = computer_hand[askedcard];
+        sleep(1);
+        std::cout << "Computer asks for a " << askedcard << std::endl;
+        sleep(1);
+        opponenthas = false;
         for (int i = 0; i < human_hand.size(); i++)
         {
             if (human_hand[i] == askedcard)
             {
+                std::cout << "The computer took your " << askedcard << std::endl;
                 computer_hand.push_back(askedcard);
                 delete_at = human_hand.begin() + i;
                 human_hand.erase(delete_at);
                 opponenthas = true;
+                sleep(1);
+                erasePairs(computer_hand, computer_hand, "Computer");
             }
         }
         if (!opponenthas)
         {
-            std::cout << "Opponent went fishing" << std::endl;
+            for (int i = 0; i < expected_hand.size(); i++)
+            {
+                if (expected_hand[i] == askedcard) // happens if expected_hand is wrong
+                {
+                    delete_at = expected_hand.begin() + i; // corrects the deviation
+                    expected_hand.erase(delete_at);
+                }
+            }
+            std::cout << "Computer went fishing" << std::endl;
             chosencard = distrib(random);
             chosencard = chosencard % available_cards.size();
             computer_hand.push_back(available_cards[chosencard]);
             delete_at = available_cards.begin() + chosencard;
             available_cards.erase(delete_at);
         }
+        sleep(1);
+        erasePairs(human_hand, human_hand, "You");
+        sleep(1);
+        erasePairs(computer_hand, computer_hand, "Computer");
+        sleep(1);
     }
     return 0;
 }
