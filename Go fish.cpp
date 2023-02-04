@@ -96,6 +96,7 @@ int main()
     std::random_device random; // use distrib(random) to generate your number
     std::uniform_int_distribution<> distrib(0, 51);
     std::vector<int> human_hand, computer_hand, available_cards, expected_hand; // expected_hand is what it thinks player has
+    expected_hand.push_back(-1);
     for (int i = 1; i < 14; i++)
     {
         for (int x = 0; x < 4; x++)
@@ -128,13 +129,17 @@ int main()
     int shouldaskfor;
     while (true)
     {
+        remove_zeroes(expected_hand);
         checkForWin(human_hand, computer_hand, available_cards);
         print_hand(human_hand, "Your");
+        // print_hand(expected_hand, "cptr xpctd's");
         // print_hand(computer_hand, "Computer's");
         std::cout << "\nWhat do you ask the computer for?: " << std::endl;
         shouldaskfor = checkForPairs(human_hand, computer_hand);
         // (shouldaskfor == -1) ? std::cout << "No cards in common.\n" : std::cout << "Ask for a " << human_hand[shouldaskfor] << std::endl;
         std::cin >> askedcard;
+        // askedcard = human_hand[shouldaskfor];
+        // std::cout << askedcard << std::endl;
         expected_hand.push_back(askedcard);
         sleep(1);
         opponenthas = false;
@@ -177,7 +182,7 @@ int main()
         // if (no pairs) {set it to rand} else {set it to pairs}
         // prevents computer asking for 0s issue
         // askedcard debug std::cout << "askedcard is " << askedcard << "\n";
-        // intelligence check (checkForPairs(computer_hand, expected_hand) == -1) ? std::cout << "Guess\n" : std::cout << "smort\n";
+        // (checkForPairs(computer_hand, expected_hand) == -1) ? std::cout << "Guess\n" : std::cout << "smort\n";
         askedcard = computer_hand[askedcard];
         sleep(1);
         std::cout << "Computer asks for a " << askedcard << std::endl;
