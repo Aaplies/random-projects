@@ -15,11 +15,12 @@ void checkForWin(const std::vector<int>& player1, const std::vector<int>& player
 
 void war(std::vector<int>& player1, std::vector<int>& player2, std::pair<int, int> active_pair, std::vector<int>::iterator& delete_at)
 {
+    const int war_wager = 10;
     std::cout << "WAR!!" << std::endl;
     std::vector<int> p1wager;
     std::vector<int> p2wager;
     std::cout << "  p1 p2" << std::endl;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < war_wager; i++)
     {
         p1wager.push_back(player1[i]);
         std::cout << 1 + i << ". " << player1[i];
@@ -33,7 +34,7 @@ void war(std::vector<int>& player1, std::vector<int>& player2, std::pair<int, in
         sleep(1);
     }
     sleep(1);
-    if (p1wager[3] > p2wager[3])
+    if (p1wager[war_wager - 1] > p2wager[war_wager - 1])
     {
         for (int i = 0; i < p1wager.size(); i++)
         {
@@ -44,7 +45,7 @@ void war(std::vector<int>& player1, std::vector<int>& player2, std::pair<int, in
         player1.push_back(active_pair.second);
         std::cout << "P1 WON THE WAR!!\n" << std::endl;
     }
-    else if (p1wager[3] < p2wager[3])
+    else if (p1wager[war_wager - 1] < p2wager[war_wager - 1])
     {
         for (int i = 0; i < p2wager.size(); i++)
         {
