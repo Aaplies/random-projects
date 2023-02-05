@@ -86,7 +86,7 @@ int main()
     }
     int chosencard;
     std::string go;
-    for (int i = 0; i < 24; i++)
+    for (int i = 0; i < 26; i++)
     {
         chosencard = distrib(random);
         chosencard = chosencard % available_cards.size();
