@@ -7,14 +7,14 @@
 #include <unistd.h>
 #endif
 
-int checkForPairs(const std::vector<int>& hand, const std::vector<int>& hand2) // pass two of the same to check one hand
+int checkForPairs(const std::vector<int>& hand, const std::vector<int>& hand2, const bool isSameHand) // pass two of the same to check one hand
 {
     std::vector<int>::iterator pairs;
     for (int i = 0; i < hand.size(); i++)
     {
         for (int x = 0; x < hand2.size(); x++)
         {
-            if (hand[i] == hand2[x] && i != x)
+            if (hand[i] == hand2[x] && (i != x || !isSameHand))
             {
                 return i;
             }
@@ -122,8 +122,8 @@ int main()
     print_hand(human_hand, "Your"); // use posessive with print_hand
     erasePairs(human_hand, human_hand, "You");
     erasePairs(computer_hand, computer_hand, "Computer");
-    (checkForPairs(human_hand, human_hand) == -1) ? std::cout << "" : std::cout << "failure :(\n"; //       checks each hand for pairs after the pair
-    (checkForPairs(computer_hand, computer_hand) == -1) ? std::cout << "" : std::cout << "failure :(\n"; // removing process
+    (checkForPairs(human_hand, human_hand, true) == -1) ? std::cout << "" : std::cout << "failure :(\n"; //       checks each hand for pairs after the pair
+    (checkForPairs(computer_hand, computer_hand, true) == -1) ? std::cout << "" : std::cout << "failure :(\n"; // removing process
     int askedcard;
     bool opponenthas = false;
     int shouldaskfor;
@@ -135,7 +135,7 @@ int main()
         // print_hand(expected_hand, "cptr xpctd's");
         // print_hand(computer_hand, "Computer's");
         std::cout << "\nWhat do you ask the computer for?: " << std::endl;
-        shouldaskfor = checkForPairs(human_hand, computer_hand);
+        shouldaskfor = checkForPairs(human_hand, computer_hand, false);
         // (shouldaskfor == -1) ? std::cout << "No cards in common.\n" : std::cout << "Ask for a " << human_hand[shouldaskfor] << std::endl;
         std::cin >> askedcard;
         // askedcard = human_hand[shouldaskfor];
@@ -178,11 +178,11 @@ int main()
             available_cards.erase(delete_at);
         }
         checkForWin(human_hand, computer_hand, available_cards);
-        askedcard = (checkForPairs(computer_hand, expected_hand) == -1) ? (distrib(random) % computer_hand.size()) : checkForPairs(computer_hand, expected_hand);
+        askedcard = (checkForPairs(computer_hand, expected_hand, false) == -1) ? (distrib(random) % computer_hand.size()) : checkForPairs(computer_hand, expected_hand, false);
         // if (no pairs) {set it to rand} else {set it to pairs}
         // prevents computer asking for 0s issue
         // askedcard debug std::cout << "askedcard is " << askedcard << "\n";
-        // (checkForPairs(computer_hand, expected_hand) == -1) ? std::cout << "Guess\n" : std::cout << "smort\n";
+        // (checkForPairs(computer_hand, expected_hand, false) == -1) ? std::cout << "Guess\n" : std::cout << "smort\n";
         askedcard = computer_hand[askedcard];
         sleep(1);
         std::cout << "Computer asks for a " << askedcard << std::endl;
