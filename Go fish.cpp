@@ -151,7 +151,7 @@ int main()
                 delete_at = computer_hand.begin() + i;
                 computer_hand.erase(delete_at);
                 opponenthas = true;
-                std::cout << "The computer had a " << askedcard << ".\n";
+                std::cout << "The computer had a pair.\n";
                 sleep(1);
                 erasePairs(human_hand, human_hand, "You"); // prevents delayed pairing
                 for (int i = 0; i < expected_hand.size(); i++)
